@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HausaBox - Mawaƙa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Loading Overlay Styles */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--secondary), #1e3c72);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .logo-spinner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .logo-spinner .spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 8px solid rgba(255, 255, 255, 0.1);
+            border-top: 8px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .logo-spinner .logo-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: var(--accent);
+        }
+        
+        .loading-text {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        /* Existing styles... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #8e44ad;
+            --primary-dark: #6c3483;
+            --secondary: #1a1a2e;
+            --accent: #00c9a7;
+            --text: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --card-bg: #16213e;
+            --header-bg: rgba(10, 15, 35, 0.95);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--secondary), #1e3c72);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(to right, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 50%;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 16px;
+            width: 100%;
+        }
+
+        .search-bar i {
+            color: var(--text-secondary);
+            margin-right: 10px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            width: 100%;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .search-button {
+            background: var(--accent);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: var(--secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .search-button:hover {
+            background: #00b395;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title h2 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(to right, var(--accent), #a166ab);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Artist Grid */
+        .artists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .artist-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .artist-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .artist-image {
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .artist-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .artist-card:hover .artist-image img {
+            transform: scale(1.05);
+        }
+
+        .artist-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .artist-info h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .artist-names {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .artist-name {
+            font-size: 16px;
+            color: var(--text);
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .artist-name:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Artist Group */
+        .artist-group {
+            margin-bottom: 50px;
+        }
+
+        .group-header {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: inline-block;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Search results message */
+        .search-results {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            color: var(--accent);
+            display: none;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .highlight {
+            background-color: rgba(0, 201, 167, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .search-container {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .search-bar {
+                width: 100%;
+            }
+            
+            .search-button {
+                width: 100%;
+                padding: 12px;
+            }
+            
+            .artists-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .artists-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .logo-spinner {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .loading-text {
+                font-size: 18px;
+            }
+        }
+        
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="loading-logo">
+            <div class="logo-spinner">
+                <div class="spinner"></div>
+                <i class="fas fa-music logo-icon"></i>
+            </div>
+            <div class="loading-text">Ana shirya HausaBox...</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <i class="fas fa-music"></i>
+            <h1>Hausa Music</h1>
+        </div>
+        
+        <div class="search-container">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Nemo mawaƙa...">
+            </div>
+            <button class="search-button" id="search-button">
+                <i class="fas fa-search"></i> Bincike
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Search results message -->
+        <div class="search-results" id="search-results">
+            <i class="fas fa-search"></i>
+            <span id="results-message">An sami sakamakon bincike: <strong></strong></span>
+        </div>
+        
+        <!-- No results message -->
+        <div class="no-results" id="no-results">
+            <i class="fas fa-search"></i>
+            <h3>Babu wani mawaki da ya dace da bincikenku</h3>
+            <p>Gwada kalma ta daban ko kuma ka duba wadannan manyan mawaka:</p>
+        </div>
+        
+        <div class="section-title">
+            <h2><i class="fas fa-star"></i> Manyan Mawaƙan Hausa</h2>
+        </div>
+        
+        <!-- Artist Group 1 -->
+        <div class="artist-group" id="popular-artists">
+            <div class="group-header">
+                <i class="fas fa-user-friends"></i> Fitattun Mawaƙa
+            </div>
+            
+            <div class="artists-grid" id="popular-grid">
+                <!-- Hamisu Breaker -->
+                <a href="hamisubreaker.html" class="artist-link" data-name="Hamisu Breaker">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/hamisubreaker.jpg" alt="Hamisu Breaker">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Hamisu Breaker</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Sadiq Saleh -->
+                <a href="sadiqsaleh.html" class="artist-link" data-name="Sadiq Saleh">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/sadiqsaleh.jpg" alt="Sadiq Saleh">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Sadiq Saleh</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Nura M Inuwa -->
+                <a href="nuraminuwa.html" class="artist-link" data-name="Nura M Inuwa">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://ia600909.us.archive.org/26/items/saeedgboy/nuraminuwa.jpg" alt="Nura M Inuwa">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Nura M Inuwa</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Umar M Shareef -->
+                <a href="umarmshareef.html" class="artist-link" data-name="Umar M Shareef">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/umarmshareef.jpg" alt="Umar M Shareef">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Umar M Shareef</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Ado Gwanja -->
+                <a href="adogwanja.html" class="artist-link" data-name="Ado Gwanja">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/adogwanja.jpg" alt="Ado gwanja">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Ado Gwanja</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Auta Mg Boy -->
+                <a href="autamgboy.html" class="artist-link" data-name="Auta Mg Boy">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/autamgboy.jpg" alt="Auta Mg Boy">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Auta MG Boy</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Auta Waziri -->
+                <a href="autawaziri.html" class="artist-link" data-name="Auta Waziri">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/autawaziri.jpg" alt="Auta Waziri">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Auta Waziri</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- isah ayagi -->
+                <a href="isahayagi.html" class="artist-link" data-name="Isah Ayagi">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/isahayagi.jpg" alt="Isah Ayagi">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Isah Ayagi</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Ali Jita -->
+                <a href="alijita.html" class="artist-link" data-name="Ali Jita">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/alijita.jpg" alt="Ali Jita">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Ali Jita</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Abdul D One -->
+                <a href="abduldone.html" class="artist-link" data-name="Abdul D One">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://ia600909.us.archive.org/26/items/saeedgboy/abduldone.jpg" alt="Abdul D One">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Abdul D One</h3>
+                            <div class="artist-names">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Artist Group 2 -->
+        <div class="artist-group" id="new-artists">
+            <div class="group-header">
+                <i class="fas fa-microphone-alt"></i> Sabbin Mawaƙa
+            </div>
+            
+            <div class="artists-grid" id="new-grid">
+                <!-- Muhammad Al Emma -->
+                <a href="alemma.html" class="artist-link" data-name="Muhammad Al Emma">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/alemma.jpg" alt="Muhammad Al Emma">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Muhammad Al Emma</h3>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Saeed G Boy -->
+                <a href="saeedgboy.html" class="artist-link" data-name="Saeed G Boy">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://archive.org/download/saeedgboy/saeedgboy.jpg" alt="Saeed G Boy">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Saeed G Boy</h3>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Artist Group 3 -->
+        <div class="artist-group" id="royal-artists">
+            <div class="group-header">
+                <i class="fas fa-guitar"></i> Mawaƙan Sarauta & Siyasa
+            </div>
+            
+            <div class="artists-grid" id="royal-grid">
+                <!-- Sarkin waka -->
+                <a href="nazirusarkinwaka.html" class="artist-link" data-name="Naziru Sarkin Waka">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/nazirusarkinwaka.jpg" alt="Naziru Sarkin Waka">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Naziru Sarkin Waka</h3>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Rarara -->
+                <a href="rarara.html" class="artist-link" data-name="Dauda Kahutu Rarara">
+                    <div class="artist-card">
+                        <div class="artist-image">
+                            <img src="https://dn721302.ca.archive.org/0/items/saeedgboy/rarara.jpg" alt="Dauda Kahutu Rarara">
+                        </div>
+                        <div class="artist-info">
+                            <h3>Dauda Kahutu Rarara</h3>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 HausaBox - Duk haƙƙoƙin suna kiyayewa</p>
+        <p>An gina shi ne don masu kaunar wakokin Hausa</p>
+    </footer>
+
+    <script>
+        // Show loading overlay initially
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // Hide the loading overlay when all resources are loaded
+        window.addEventListener('load', function() {
+            // Add a small delay for a smoother transition
+            setTimeout(function() {
+                loadingOverlay.classList.add('hidden');
+                
+                // Remove overlay from DOM after transition completes
+                setTimeout(function() {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }, 500);
+        });
+        
+        // Fallback in case load event doesn't fire
+        setTimeout(function() {
+            loadingOverlay.classList.add('hidden');
+            setTimeout(function() {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        }, 5000); // Hide after 5 seconds regardless
+        
+        // Existing JavaScript functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const artistLinks = document.querySelectorAll('.artist-link');
+            const searchResults = document.getElementById('search-results');
+            const resultsMessage = document.getElementById('results-message');
+            const noResults = document.getElementById('no-results');
+            const popularArtists = document.getElementById('popular-artists');
+            const newArtists = document.getElementById('new-artists');
+            const royalArtists = document.getElementById('royal-artists');
+            
+            // Function to filter artists based on search query
+            function filterArtists(query) {
+                let found = false;
+                
+                // Clear previous search highlights
+                document.querySelectorAll('.highlight').forEach(el => {
+                    el.classList.remove('highlight');
+                });
+                
+                // Show all artists and groups initially
+                artistLinks.forEach(link => {
+                    link.style.display = 'block';
+                    const nameElement = link.querySelector('h3');
+                    nameElement.innerHTML = link.getAttribute('data-name');
+                });
+                
+                popularArtists.style.display = 'block';
+                newArtists.style.display = 'block';
+                royalArtists.style.display = 'block';
+                
+                // If search is empty, show everything
+                if (query.trim() === '') {
+                    searchResults.style.display = 'none';
+                    noResults.style.display = 'none';
+                    return;
+                }
+                
+                // Hide non-matching artists
+                artistLinks.forEach(link => {
+                    const artistName = link.getAttribute('data-name').toLowerCase();
+                    if (artistName.includes(query.toLowerCase())) {
+                        found = true;
+                        
+                        // Highlight matching text
+                        const nameElement = link.querySelector('h3');
+                        const name = nameElement.textContent;
+                        const regex = new RegExp(query, 'gi');
+                        const newName = name.replace(regex, match => `<span class="highlight">${match}</span>`);
+                        nameElement.innerHTML = newName;
+                    } else {
+                        link.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide groups based on whether they have visible artists
+                const popularHasResults = Array.from(document.querySelectorAll('#popular-grid .artist-link')).some(link => 
+                    link.style.display !== 'none'
+                );
+                popularArtists.style.display = popularHasResults ? 'block' : 'none';
+                
+                const newHasResults = Array.from(document.querySelectorAll('#new-grid .artist-link')).some(link => 
+                    link.style.display !== 'none'
+                );
+                newArtists.style.display = newHasResults ? 'block' : 'none';
+                
+                const royalHasResults = Array.from(document.querySelectorAll('#royal-grid .artist-link')).some(link => 
+                    link.style.display !== 'none'
+                );
+                royalArtists.style.display = royalHasResults ? 'block' : 'none';
+                
+                // Show search results message or no results message
+                if (found) {
+                    searchResults.style.display = 'block';
+                    resultsMessage.querySelector('strong').textContent = `"${query}"`;
+                    noResults.style.display = 'none';
+                } else {
+                    searchResults.style.display = 'none';
+                    noResults.style.display = 'block';
+                }
+            }
+            
+            // Add event listeners for search
+            searchInput.addEventListener('input', function() {
+                filterArtists(this.value);
+            });
+            
+            searchButton.addEventListener('click', function() {
+                filterArtists(searchInput.value);
+            });
+            
+            // Initial focus on search input
+            searchInput.focus();
+        });
+    </script>
+</body>
+</html>
